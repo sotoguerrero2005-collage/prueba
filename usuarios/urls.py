@@ -4,6 +4,7 @@ from .views import UsuarioViewSet, login
 
 router = DefaultRouter()
 router.register(r'usuarios', UsuarioViewSet)
+router.register(r'actividades', UserActivityViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

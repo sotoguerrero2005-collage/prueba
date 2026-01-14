@@ -46,6 +46,11 @@ INSTALLED_APPS = [
     # Local apps
     'usuarios',
     'cursos',
+    'lecciones',
+    'inscripciones',
+    'evaluaciones',
+    'pagos',
+    'notas',
 ]
 
 MIDDLEWARE = [
@@ -114,6 +119,8 @@ from datetime import timedelta
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=5),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'USER_ID_FIELD': 'id_usuario',
+    'USER_ID_CLAIM': 'user_id',
 }
 
 # Password validation
@@ -156,3 +163,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

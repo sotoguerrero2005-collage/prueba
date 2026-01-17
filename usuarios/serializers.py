@@ -7,7 +7,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = '__all__'
         extra_kwargs = {'password': {'write_only': True}}
-        read_only_fields = ['id_usuario', 'rol', 'estado']
+        read_only_fields = ['id_usuario']
     
     def update(self, instance, validated_data):
         # No tocar password si no viene

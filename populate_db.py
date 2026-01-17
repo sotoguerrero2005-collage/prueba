@@ -12,25 +12,20 @@ from lecciones.models import Leccion, RecursoLeccion
 from inscripciones.models import Inscripcion
 from evaluaciones.models import Evaluacion, Pregunta, Respuesta
 from pagos.models import Pago
-from notas.models import Nota
-
 
 # -----------------------------
 # Función para crear usuarios
 # -----------------------------
-def create_usuario(nombre, correo, rol, password):
-    username = correo.split("@")[0]  # genera un username único
-    # Verifica si ya existe para no duplicar
-    if Usuario.objects.filter(username=username).exists():
-        username += "_1"
-    user = Usuario(
-        username=username,
-        nombre_completo=nombre,
+def create_usuario(nombre, correo, rol, password, is_staff=False, is_superuser=False):
+    user = Usuario.objects.create_user(
         correo=correo,
+        password=password,
+        username=correo.split("@")[0],
+        nombre_completo=nombre,
         rol=rol,
-        password=make_password(password)  # hashea la contraseña
+        is_staff=is_staff,
+        is_superuser=is_superuser
     )
-    user.save()
     return user
 
 # -----------------------------
@@ -38,14 +33,14 @@ def create_usuario(nombre, correo, rol, password):
 # -----------------------------
 estudiante = create_usuario("Estudiante Uno", "estudiante@test.com", "estudiante", "pass123")
 profesor = create_usuario("Profesor Uno", "profesor@test.com", "profesor", "pass123")
-adminC = create_usuario("Admin Cursos", "adminC@test.com", "AdminC", "pass123")
-adminP = create_usuario("Admin Pagos", "adminP@test.com", "AdminP", "pass123")
+adminC = create_usuario("Admin Cursos", "adminC@test.com", "AdminC", "pass123", is_staff=True, is_superuser=True)
+adminP = create_usuario("Admin Pagos", "adminP@test.com", "AdminP", "pass123", is_staff=True)
 
 # -----------------------------
 # 2️⃣ Crear Cursos
 # -----------------------------
 cursos = []
-for i in range(1, 5):  # 4 cursos
+for i in range(1, 4):  # 3 cursos
     curso = Curso.objects.create(
         titulo=f"Curso {i}",
         descripcion_breve=f"Breve descripción del curso {i}",
@@ -77,30 +72,18 @@ for curso in cursos:
             RecursoLeccion.objects.create(
                 leccion=leccion,
                 tipo="video",
-                url_archivo=f"https://videos.com/{curso.titulo}-{modulo.titulo}-{l}.mp4",
+                url_enlace=f"https://videos.com/{curso.titulo}-{modulo.titulo}-{l}.mp4",
                 orden=1
             )
             RecursoLeccion.objects.create(
                 leccion=leccion,
                 tipo="pdf",
-                url_archivo=f"https://docs.com/{curso.titulo}-{modulo.titulo}-{l}.pdf",
+                url_enlace=f"https://docs.com/{curso.titulo}-{modulo.titulo}-{l}.pdf",
                 orden=2
             )
 
 # -----------------------------
-# 4️⃣ Crear Inscripciones
-# -----------------------------
-inscripciones = []
-for curso in cursos[:2]:  # el estudiante se inscribe en 2 cursos
-    insc = Inscripcion.objects.create(
-        estudiante=estudiante,
-        curso=curso,
-        estado="activa"
-    )
-    inscripciones.append(insc)
-
-# -----------------------------
-# 5️⃣ Crear Evaluaciones, Preguntas y Respuestas
+# 4️⃣ Crear Evaluaciones, Preguntas y Respuestas
 # -----------------------------
 for curso in cursos:
     evaluacion = Evaluacion.objects.create(
@@ -121,15 +104,24 @@ for curso in cursos:
             )
 
 # -----------------------------
-# 6️⃣ Crear Pagos
+# 5️⃣ Inscribir solo al estudiante en un curso
 # -----------------------------
-for insc in inscripciones:
-    Pago.objects.create(
-        inscripcion=insc,
-        metodo_pago="transferencia",
-        monto=insc.curso.precio,
-        estado="aprobado",
-        verificado_por=adminP
-    )
+curso_inscrito = cursos[0]  # solo el primer curso
+inscripcion = Inscripcion.objects.create(
+    estudiante=estudiante,
+    curso=curso_inscrito,
+    estado="activa"
+)
 
-print("Base de datos poblada correctamente con 4 usuarios, cursos, módulos, lecciones, evaluaciones y pagos.")
+# -----------------------------
+# 6️⃣ Crear Pago para ese estudiante
+# -----------------------------
+Pago.objects.create(
+    inscripcion=inscripcion,
+    estudiante=estudiante,
+    metodo_pago="transferencia",
+    monto=curso_inscrito.precio,
+    estado="aprobado"
+)
+
+print("Base de datos poblada correctamente.")

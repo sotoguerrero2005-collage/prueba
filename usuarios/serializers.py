@@ -30,3 +30,8 @@ class UserActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = UserActivity
         fields = '__all__'
+
+class ProfesorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        fields = ['id_usuario', 'nombre_completo', 'correo']

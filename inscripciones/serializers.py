@@ -7,10 +7,10 @@ from cursos.models import Curso
 class InscripcionSerializer(serializers.ModelSerializer):
     estudiante = serializers.ReadOnlyField(source='estudiante.username')
 
-    # 🔹 LECTURA: curso completo
+    # LECTURA: curso completo
     curso = CursoSerializer(read_only=True)
 
-    # 🔹 ESCRITURA: solo el ID
+    # ESCRITURA: solo el ID
     curso_id = serializers.PrimaryKeyRelatedField(
         queryset=Curso.objects.all(),
         source='curso',
@@ -19,13 +19,22 @@ class InscripcionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Inscripcion
-        fields = ['id', 'estudiante', 'curso', 'curso_id', 'estado', 'fecha_inscripcion', 'pago']
+        fields = ['id', 'estudiante', 'curso', 'curso_id', 'estado', 'fecha_inscripcion']
+        read_only_fields = [ 'id', 'estudiante', 'estado', 'fecha_inscripcion' ]
 
     def validate(self, data):
         usuario = self.context['request'].user
-        curso = data['curso']
-        if Inscripcion.objects.filter(estudiante=usuario, curso=curso).exists():
-            raise serializers.ValidationError({
-                "error": "El estudiante ya está inscrito en este curso."
-            })
+        curso = data.get('curso')
+
+        print("DEBUG USER:", usuario, usuario.id_usuario)
+        print("DEBUG CURSO:", curso, curso.id if curso else None)
+
+        qs = Inscripcion.objects.filter(estudiante=usuario, curso=curso)
+        print("DEBUG QUERYSET:", qs)
+
+        if qs.exists():
+            raise serializers.ValidationError(
+                {"detail": "Ya estás inscrito en este curso"}
+            )
+
         return data

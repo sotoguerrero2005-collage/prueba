@@ -3,12 +3,14 @@ from rest_framework import viewsets, permissions
 from .models import Leccion, RecursoLeccion
 from .serializers import LeccionSerializer, RecursoLeccionSerializer, LeccionCreateSerializer
 from inscripciones.models import Inscripcion
+from rest_framework.parsers import MultiPartParser, FormParser
 
 class LeccionViewSet(viewsets.ModelViewSet):
     queryset = Leccion.objects.all()
     serializer_class = LeccionSerializer
     permission_classes = [permissions.IsAuthenticated]
-
+    parser_classes = [MultiPartParser, FormParser]
+    
     def get_serializer_class(self):
         if self.request.method in ['POST', 'PUT', 'PATCH']:
             return LeccionCreateSerializer

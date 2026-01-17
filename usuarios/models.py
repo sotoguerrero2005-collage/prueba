@@ -1,7 +1,24 @@
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.contrib.auth.hashers import make_password
 
-class Usuario(models.Model):
+class UsuarioManager(BaseUserManager):
+    def create_user(self, correo, password=None, **extra_fields):
+        if not correo:
+            raise ValueError('El correo debe ser proporcionado')
+        correo = self.normalize_email(correo)
+        user = self.model(correo=correo, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, correo, password=None, **extra_fields):
+        extra_fields.setdefault('rol', 'AdminC')
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(correo, password, **extra_fields)
+
+class Usuario(AbstractBaseUser, PermissionsMixin):
     ROLES = (
         ('AdminP', 'Administrador de Pagos'),
         ('AdminC', 'Administrador de Cursos'),
@@ -13,21 +30,20 @@ class Usuario(models.Model):
     username = models.CharField(max_length=150, unique=True)
     nombre_completo = models.CharField(max_length=255)
     correo = models.EmailField(unique=True)
-    telefono = models.CharField(max_length=50, blank=True, null=True)
-    cedula = models.CharField(max_length=50, unique=True, blank=True, null=True)
     rol = models.CharField(max_length=30, choices=ROLES)
-    password = models.CharField(max_length=255)
     estado = models.BooleanField(default=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+
+    objects = UsuarioManager()
+
+    USERNAME_FIELD = 'correo'
+    REQUIRED_FIELDS = ['username', 'rol']
+
     class Meta:
         db_table = 'usuarios'
-
-    def save(self, *args, **kwargs):
-        # Guardar la contraseña en hash solo si hay un valor y no está hasheada
-        if self.password and not self.password.startswith('pbkdf2_'):
-            self.password = make_password(self.password)
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.nombre_completo} ({self.rol})"

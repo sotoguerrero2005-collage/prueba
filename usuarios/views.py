@@ -4,12 +4,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password, make_password
-
+from rest_framework.generics import ListAPIView
+from rest_framework.views import APIView
 from .models import Usuario, UserActivity
-from .serializers import UsuarioSerializer, LoginSerializer, UserActivitySerializer
+from .serializers import UsuarioSerializer, LoginSerializer, UserActivitySerializer, ProfesorSerializer
 from .permissions import IsAdminCOrAdminP
 from .signals import registrar_actividad_manual
-
 
 # -----------------------------
 # LOGIN
@@ -132,3 +132,9 @@ class UserActivityViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserActivitySerializer
     permission_classes = [IsAdminCOrAdminP]
 
+class ProfesorListView(ListAPIView):
+    serializer_class = ProfesorSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Usuario.objects.filter(rol='profesor', estado=True)

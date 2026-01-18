@@ -10,17 +10,19 @@ class RecursoLeccionSerializer(serializers.ModelSerializer):
 
 class LeccionSerializer(serializers.ModelSerializer):
     recursos = RecursoLeccionSerializer(many=True, read_only=True)
-    
+    curso_id = serializers.ReadOnlyField(source='modulo.curso.id')
+
     class Meta:
         model = Leccion
-        fields = ['id', 'modulo', 'titulo', 'contenido', 'orden', 'recursos']
+        fields = ['id', 'modulo', 'curso_id', 'titulo', 'contenido', 'orden', 'recursos']
 
 class LeccionCreateSerializer(serializers.ModelSerializer):
     recursos = RecursoLeccionSerializer(many=True, required=False)
+    curso_id = serializers.ReadOnlyField(source='modulo.curso.id')
 
     class Meta:
         model = Leccion
-        fields = ['id', 'modulo', 'titulo', 'contenido', 'orden', 'recursos']
+        fields = ['id', 'modulo', 'curso_id', 'titulo', 'contenido', 'orden', 'recursos']
 
     def create(self, validated_data):
         # 1. Extraer recursos para evitar error de relación inversa

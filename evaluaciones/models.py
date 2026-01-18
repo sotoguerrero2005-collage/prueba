@@ -1,5 +1,5 @@
 from django.db import models
-from cursos.models import Curso
+from cursos.models import Curso, Modulo
 from usuarios.models import Usuario
 from django.utils import timezone
 
@@ -10,6 +10,7 @@ class Evaluacion(models.Model):
     ]
     
     curso = models.ForeignKey(Curso, on_delete=models.CASCADE, related_name='evaluaciones')
+    modulo = models.ForeignKey(Modulo, on_delete=models.CASCADE, related_name='evaluaciones', null=True, blank=True)
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField(blank=True)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES)

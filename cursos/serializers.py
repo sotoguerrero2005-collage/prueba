@@ -2,6 +2,7 @@
 from rest_framework import serializers
 from .models import Curso, Modulo
 from lecciones.serializers import ModuloDetalleSerializer
+from evaluaciones.serializers import EvaluacionSerializer
 
 
 class ModuloSerializer(serializers.ModelSerializer):
@@ -62,6 +63,7 @@ class CursoSerializer(serializers.ModelSerializer):
 
 class CursoDetalleSerializer(serializers.ModelSerializer):
     modulos = ModuloDetalleSerializer(many=True)
+    evaluaciones = EvaluacionSerializer(many=True)
     inscrito = serializers.SerializerMethodField()
     estadoInscripcion = serializers.SerializerMethodField()
 
@@ -78,6 +80,7 @@ class CursoDetalleSerializer(serializers.ModelSerializer):
             'fecha_creacion',
             'profesor',
             'modulos',
+            'evaluaciones',
             'inscrito',
             'estadoInscripcion'
         ]

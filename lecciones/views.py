@@ -17,14 +17,24 @@ class LeccionViewSet(viewsets.ModelViewSet):
         return LeccionSerializer
 
     def get_queryset(self):
-        # Solo mostrar lecciones de cursos donde el usuario está inscrito
-        user = self.request.user
-        if user.rol == 'estudiante':
-            cursos = Inscripcion.objects.filter(estudiante=user, estado='activa').values_list('curso', flat=True)
-            return Leccion.objects.filter(modulo__curso__in=cursos)
-        elif user.rol == 'profesor':
-            return Leccion.objects.filter(modulo__curso__profesor=user)
-        return Leccion.objects.all()
+            # Solo mostrar lecciones de cursos donde el usuario está inscrito
+            user = self.request.user
+            
+            if user.rol == 'estudiante':
+                # Definimos los estados que permiten acceso
+                estados_validos = ['activa', 'aprobado']
+                
+                # Buscamos los IDs de los cursos permitidos
+                cursos = Inscripcion.objects.filter(estudiante=user, estado__in=estados_validos).values_list('curso', flat=True)
+                
+                # Filtramos las lecciones que pertenecen a esos cursos
+                return Leccion.objects.filter(modulo__curso__in=cursos)
+                
+            elif user.rol == 'profesor':
+                return Leccion.objects.filter(modulo__curso__profesor=user)
+                
+            # Si es admin o cualquier otro rol, ve todas las lecciones
+            return Leccion.objects.all()
 
     # Para que el serializer pueda leer request.data y request.FILES
     def get_serializer_context(self):

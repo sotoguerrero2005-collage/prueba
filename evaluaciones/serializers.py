@@ -5,21 +5,33 @@ from .models import Evaluacion, Pregunta, Respuesta, IntentoEvaluacion, Respuest
 class RespuestaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Respuesta
-        fields = ['id', 'pregunta', 'texto', 'es_correcta']
+        fields = ['id', 'texto', 'es_correcta']
 
 class PreguntaSerializer(serializers.ModelSerializer):
-    respuestas = RespuestaSerializer(many=True, read_only=True)
+    respuestas = RespuestaSerializer(many=True)
     
     class Meta:
         model = Pregunta
-        fields = ['id', 'evaluacion', 'texto', 'tipo', 'puntaje', 'respuestas']
+        fields = ['id', 'texto', 'tipo', 'puntaje', 'respuestas']
 
 class EvaluacionSerializer(serializers.ModelSerializer):
-    preguntas = PreguntaSerializer(many=True, read_only=True)
+    preguntas = PreguntaSerializer(many=True)
     
     class Meta:
         model = Evaluacion
-        fields = ['id', 'curso', 'titulo', 'estado', 'preguntas']
+        fields = ['id', 'curso', 'titulo', 'descripcion', 'estado', 'preguntas']
+
+    def create(self, validated_data):
+        preguntas_data = validated_data.pop('preguntas')
+        evaluacion = Evaluacion.objects.create(**validated_data)
+        
+        for pregunta_data in preguntas_data:
+            respuestas_data = pregunta_data.pop('respuestas')
+            pregunta = Pregunta.objects.create(evaluacion=evaluacion, **pregunta_data)
+            
+            for respuesta_data in respuestas_data:
+                Respuesta.objects.create(pregunta=pregunta, **respuesta_data)
+        return evaluacion  
 
 class RespuestaAlumnoSerializer(serializers.ModelSerializer):
     class Meta:

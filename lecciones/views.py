@@ -25,3 +25,9 @@ class LeccionViewSet(viewsets.ModelViewSet):
         elif user.rol == 'profesor':
             return Leccion.objects.filter(modulo__curso__profesor=user)
         return Leccion.objects.all()
+
+    # Para que el serializer pueda leer request.data y request.FILES
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context        

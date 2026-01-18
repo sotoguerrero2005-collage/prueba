@@ -24,7 +24,7 @@ class RecursoLeccion(models.Model):
     leccion = models.ForeignKey(Leccion, on_delete=models.CASCADE, related_name='recursos')
     tipo = models.CharField(max_length=30, choices=TIPO_CHOICES)
     archivo = models.FileField(upload_to='recursos/', blank=True, null=True)
-    url_enlace = models.CharField(max_length=255, blank=True)  
+    url_enlace = models.URLField(max_length=500, blank=True, null=True)  
     descripcion = models.CharField(max_length=255, blank=True)
     orden = models.PositiveIntegerField()
     

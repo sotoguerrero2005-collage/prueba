@@ -6,7 +6,7 @@ from cursos.models import Modulo
 class RecursoLeccionSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecursoLeccion
-        fields = ['id', 'tipo', 'url_archivo', 'descripcion', 'orden']
+        fields = ['id', 'tipo', 'archivo', 'url_enlace', 'descripcion', 'orden']
 
 class LeccionSerializer(serializers.ModelSerializer):
     recursos = RecursoLeccionSerializer(many=True, read_only=True)
@@ -23,10 +23,35 @@ class LeccionCreateSerializer(serializers.ModelSerializer):
         fields = ['id', 'modulo', 'titulo', 'contenido', 'orden', 'recursos']
 
     def create(self, validated_data):
+        # 1. Extraer recursos para evitar error de relación inversa
         recursos_data = validated_data.pop('recursos', [])
+        
+        # 2. Crear la lección una sola vez
         leccion = Leccion.objects.create(**validated_data)
-        for recurso_data in recursos_data:
-            RecursoLeccion.objects.create(leccion=leccion, **recurso_data)
+
+        # 3. Obtener el request del contexto
+        request = self.context.get('request')
+        
+        if request:
+            i = 0
+            # Buscamos en request.data lo enviado desde el FormData de Angular
+            while f'recursos[{i}]tipo' in request.data:
+                tipo = request.data.get(f'recursos[{i}]tipo')
+                descripcion = request.data.get(f'recursos[{i}]descripcion', '')
+                orden = request.data.get(f'recursos[{i}]orden', i)
+                url_enlace = request.data.get(f'recursos[{i}]url_enlace', '')
+                archivo = request.FILES.get(f'recursos[{i}]archivo')
+
+                RecursoLeccion.objects.create(
+                    leccion=leccion,
+                    tipo=tipo,
+                    archivo=archivo,
+                    url_enlace=url_enlace,
+                    descripcion=descripcion,
+                    orden=orden
+                )
+                i += 1
+        
         return leccion
 
 class LeccionPreviewSerializer(serializers.ModelSerializer):
